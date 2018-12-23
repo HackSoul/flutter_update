@@ -52,7 +52,7 @@ public class FlutterUpdatePlugin implements MethodCallHandler {
       Cursor cursor = manager.query(query);
       if (!cursor.moveToFirst()) {
         cursor.close();
-        result.success(0);
+        result.success("{}");
         return;
       }
       long downloadedSoFar = cursor.getLong(cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
