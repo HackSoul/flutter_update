@@ -21,7 +21,6 @@ import static android.content.Context.DOWNLOAD_SERVICE;
 
 public class FlutterUpdatePlugin implements MethodCallHandler {
   private DownloadManager manager;
-  private String downloadUrl = "http://file.vidovision.com/file/appfile/apk/download";
   private long downId;
 
   private FlutterUpdatePlugin(Registrar registrar) {
@@ -36,15 +35,17 @@ public class FlutterUpdatePlugin implements MethodCallHandler {
   @Override
   public void onMethodCall(MethodCall call, Result result) {
     if (call.method.equals("downloadApk")) {
-      DownloadManager.Request request = new DownloadManager.Request(Uri.parse(downloadUrl));
+      String url = call.argument("url");
+      System.out.println("url:" + url);
+      DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
       request.setTitle("邻里社区");
       request.setDescription("软件更新");
-      request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI);
+      request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE | DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
       File saveFile = new File(Environment.getExternalStorageDirectory(), "community.apk");
       request.setDestinationUri(Uri.fromFile(saveFile));
       long downloadId = manager.enqueue(request);
       this.downId = downloadId;
-      result.success(downloadId + "");
+      result.success("downloadId: " + downloadId);
     } else if (call.method.equals("getProgress")) {
       DownloadManager.Query query = new DownloadManager.Query();
       query.setFilterById(downId);

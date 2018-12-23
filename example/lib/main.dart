@@ -37,7 +37,7 @@ class _MyAppState extends State<MyApp> {
     if (!mounted) return;
 
     setState(() {
-      downloadId = downloadId;
+      this.downloadId = downloadId;
     });
   }
 

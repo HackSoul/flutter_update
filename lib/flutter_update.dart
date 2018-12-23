@@ -7,7 +7,9 @@ class FlutterUpdate {
       const MethodChannel('flutter_update');
 
   static Future<String> downloadApk() async {
-    final String version = await _channel.invokeMethod('downloadApk');
+    final String version = await _channel.invokeMethod('downloadApk', {
+      "url": "http://file.vidovision.com/file/appfile/apk/download"
+    });
     return version;
   }
 
