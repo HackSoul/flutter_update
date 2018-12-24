@@ -70,18 +70,19 @@
 {
     NSMutableDictionary *receiveStatusDic = (NSMutableDictionary *) data[0];
     NSLog(@"receiveData=%@",receiveStatusDic);
-    NSString *version = [receiveStatusDic objectForKey: @"version"];
-    NSLog(@"storeVersion=%@", version);
+    NSString *versionStr = [receiveStatusDic objectForKey: @"version"];
+    NSLog(@"storeVersion=%@", versionStr);
+    double version = [versionStr doubleValue];
     
     NSDictionary *infoDictionary = [[NSBundle mainBundle] infoDictionary];
-    NSString *app_Version = [infoDictionary objectForKey:@"CFBundleShortVersionString"];
+    NSString *appVersionStr = [infoDictionary objectForKey:@"CFBundleShortVersionString"];
+    double appVersion = [appVersionStr doubleValue];
+    NSLog(@"app_Version=%@",appVersionStr);
     
-    NSLog(@"app_Version=%@",app_Version);
-    
-    if ([app_Version isEqualToString:version]) {
-        ((FlutterResult) data[1])([@"" stringByAppendingString:[NSString stringWithFormat:@"%s", "false"]]);
-    } else {
+    if (appVersion < version) {
         ((FlutterResult) data[1])([@"" stringByAppendingString:[NSString stringWithFormat:@"%s", "true"]]);
+    } else {
+        ((FlutterResult) data[1])([@"" stringByAppendingString:[NSString stringWithFormat:@"%s", "false"]]);
     }
 
 }
