@@ -1,4 +1,5 @@
 #import "FlutterUpdatePlugin.h"
+#import <StoreKit/StoreKit.h>
 
 @implementation FlutterUpdatePlugin
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
@@ -10,11 +11,79 @@
 }
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
-  if ([@"getPlatformVersion" isEqualToString:call.method]) {
-    result([@"iOS " stringByAppendingString:[[UIDevice currentDevice] systemVersion]]);
+  if ([@"update" isEqualToString:call.method]) {
+      
+      NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"%s",
+                                         "https://itunes.apple.com/cn/app/%E9%82%BB%E9%87%8C%E4%BA%92%E5%8A%A8/id1441499804"]];
+      if (@available(iOS 10.0, *)) {
+          [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:NULL];
+      } else {
+          // Fallback on earlier versions
+      }
+      result([@"app_Version: " stringByAppendingString:[NSString stringWithFormat:@"%@", url]]);
+  } else if ([@"canUpdate" isEqualToString:call.method]) {
+      NSString *itunesUrl = [[NSString alloc] initWithFormat:@"http://itunes.apple.com/cn/lookup?id=%@",@"1441499804"];
+      [self postpath: itunesUrl result: result];
   } else {
     result(FlutterMethodNotImplemented);
   }
+}
+
+
+-(void)postpath:(NSString *)path result:(FlutterResult)result
+{
+    
+    NSURL *url = [NSURL URLWithString:path];
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url
+                                                           cachePolicy:NSURLRequestReloadIgnoringCacheData
+                                                       timeoutInterval:10];
+    
+    [request setHTTPMethod:@"POST"];
+    
+    
+    NSOperationQueue *queue = [NSOperationQueue new];
+    
+    [NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response,NSData *data,NSError *error){
+        NSMutableDictionary *receiveStatusDic=[[NSMutableDictionary alloc]init];
+        if (data) {
+            
+            NSDictionary *receiveDic = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableLeaves error:nil];
+            if ([[receiveDic valueForKey:@"resultCount"] intValue]>0) {
+                
+                [receiveStatusDic setValue:@"1" forKey:@"status"];
+                [receiveStatusDic setValue:[[[receiveDic valueForKey:@"results"] objectAtIndex:0] valueForKey:@"version"]   forKey:@"version"];
+            }else{
+                
+                [receiveStatusDic setValue:@"-1" forKey:@"status"];
+            }
+        } else {
+            [receiveStatusDic setValue:@"-1" forKey:@"status"];
+        }
+        
+        [self performSelectorOnMainThread:@selector(receiveData:) withObject:[NSArray arrayWithObjects:receiveStatusDic, result, nil] waitUntilDone:NO];
+    }];
+    
+}
+
+
+-(void)receiveData:(NSArray*)data
+{
+    NSMutableDictionary *receiveStatusDic = (NSMutableDictionary *) data[0];
+    NSLog(@"receiveData=%@",receiveStatusDic);
+    NSString *version = [receiveStatusDic objectForKey: @"version"];
+    NSLog(@"storeVersion=%@", version);
+    
+    NSDictionary *infoDictionary = [[NSBundle mainBundle] infoDictionary];
+    NSString *app_Version = [infoDictionary objectForKey:@"CFBundleShortVersionString"];
+    
+    NSLog(@"app_Version=%@",app_Version);
+    
+    if ([app_Version isEqualToString:version]) {
+        ((FlutterResult) data[1])([@"" stringByAppendingString:[NSString stringWithFormat:@"%s", "false"]]);
+    } else {
+        ((FlutterResult) data[1])([@"" stringByAppendingString:[NSString stringWithFormat:@"%s", "true"]]);
+    }
+
 }
 
 @end

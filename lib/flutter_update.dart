@@ -16,4 +16,12 @@ class FlutterUpdate {
   static Future<String> get progress async {
     return await _channel.invokeMethod("getProgress");
   }
+
+  static Future<String> update() async {
+    return await _channel.invokeMethod("update");
+  }
+
+  static Future<String> canUpdate() async {
+    return await _channel.invokeMethod("canUpdate");
+  }
 }

@@ -18,10 +18,9 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    initPlatformState();
   }
 
-  Future<void> initPlatformState() async {
+  Future<void> downApk() async {
     String downloadId;
     try {
       downloadId = await FlutterUpdate.downloadApk();
@@ -50,7 +49,17 @@ class _MyAppState extends State<MyApp> {
         ),
         body: Column(
           children: <Widget>[
-            Text('$downloadId'),
+            Theme.of(context).platform == TargetPlatform.android ? RaisedButton(
+              onPressed: () => downApk(),
+              child: Text("测试下载安卓app"),
+            ) : RaisedButton(
+              onPressed: () {
+                FlutterUpdate.canUpdate().then((str) {
+                  print("result: " + str);
+                });
+              },
+              child: Text("检查更新"),
+            )
           ],
         )
       ),
